@@ -20,6 +20,65 @@ body {
   perspective: 1000px;
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#message{
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+	position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+	background-image: linear-gradient(to top, #f672b0, #4d4dff);
+    -webkit-background-clip: text;
+    color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	animation: fadeIn 7s;
+	font-family: 'My Soul', cursive;
+}
+
+#desc{
+	position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+	background-image: linear-gradient(to top, #f672b0, #f672b0);
+    -webkit-background-clip: text;
+    color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	animation: fadeIn 7s;
+	font-family: 'My Soul', cursive;
+}
+
+#sign{
+	position: absolute;
+    top: 47%;
+    left: 60%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+	background-image: linear-gradient(to top, #f672b0, #f672b0);
+    -webkit-background-clip: text;
+    color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	animation: fadeIn 7s;
+	font-family: 'My Soul', cursive;
+}
+
 .night {
   position: fixed;
   left: 50%;
