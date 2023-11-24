@@ -39,7 +39,7 @@ body {
     top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 42px;
+    font-size: 38px;
 	background-image: linear-gradient(to top, #f672b0, #4d4dff);
     -webkit-background-clip: text;
     color: transparent;
@@ -51,10 +51,10 @@ body {
 
 #desc{
 	position: absolute;
-    top: 43%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 22px;
+    font-size: 20px;
 	background-image: linear-gradient(to top, #f672b0, #f672b0);
     -webkit-background-clip: text;
     color: transparent;
@@ -66,10 +66,10 @@ body {
 
 #sign{
 	position: absolute;
-    top: 60%;
+    top: 53%;
     left: 60%;
     transform: translate(-50%, -50%);
-    font-size: 22px;
+    font-size: 20px;
 	background-image: linear-gradient(to top, #f672b0, #f672b0);
     -webkit-background-clip: text;
     color: transparent;
