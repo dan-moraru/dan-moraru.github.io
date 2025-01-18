@@ -5,56 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Decrypt the Message</title>
   <style>
-      body {
-        font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-color: #ffffff;
-        margin: 0;
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #ffffff;
+      margin: 0;
+    }
+    .container {
+      text-align: center;
+    }
+    .input-field {
+      margin: 20px 0;
+    }
+    input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #ffffff;
+      color: #007BFF;
+      border-radius: 10px;
+      cursor: pointer;
+      border-color: #007BFF;
+    }
+    button:hover {
+      color: #ffffff;
+      background-color: #007BFF;
+      border-color: #0776ec;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    ul {
+      list-style-position: inside;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      padding-bottom: 5px;
+    }
+    #hearts {
+      width: 5%;
+      min-width: 100px;
+      height: 25%;
+      min-height: 250px;
+      z-index: 10;
+    }
+    .heart {
+      position: absolute;
+      height: 7%;
+      min-height: 15px;
+      width: 20%;
+      min-width: 15px;
+      background-color: red;
+      -webkit-mask-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path></svg>');
+              mask-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path></svg>');
+      -webkit-mask-repeat: no-repeat;
+              mask-repeat: no-repeat;
+      -webkit-mask-position: bottom;
+              mask-position: bottom;
+        opacity: 0;
+        animation: floating-heart 10s infinite cubic-bezier(0.5, 0.5, 0.5, 0.5);
+    }
+
+    @keyframes floating-heart {
+      0% {
+        opacity: 0;
+        bottom: 0%;
+        left: 35%;
       }
-      .container {
-        text-align: center;
+      10% {
+        opacity: 1;
+        bottom: 20%;
+        left: 50%;
       }
-      .input-field {
-        margin: 20px 0;
+      20% {
+        bottom: 40%;
+        left: 30%;
       }
-      input[type="text"] {
-        width: 300px;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+      30% {
+        bottom: 60%;
+        left: 50%;
       }
-      button {
-        padding: 10px 20px;
-        font-size: 16px;
-        background-color: #ffffff;
-        color: #007BFF;
-        border-radius: 10px;
-        cursor: pointer;
-        border-color: #007BFF;
+      40% {
+        opacity: 1;
+        bottom: 80%;
+        left: 27%;
       }
-      button:hover {
-        color: #ffffff;
-        background-color: #007BFF;
-        border-color: #0776ec;
+      48% {
+        opacity: 0;
+        bottom: 100%;
+        left: 50%;
       }
-      .message {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
+      100% {
+        opacity: 0;
+        bottom: 100%;
+        left: 70%;
       }
-      ul {
-        list-style-position: inside;
-        padding: 0;
-        margin: 0;
-      }
-      li {
-        padding-bottom: 5px;
-      }
+    }
+
+    .heart:nth-child(1) {  
+      animation-delay: 1s;
+    }
+
+    .heart:nth-child(2) {
+      animation-delay: 2.5s;
+    }
+
+    .heart:nth-child(3) {
+      animation-delay: 3.5s;
+    }
+
+    .heart:nth-child(4) {
+      animation-delay: 4.5s;
+    }
   </style>
 </head>
 <body>
@@ -73,7 +148,14 @@
         </div>
         <button onclick="check()">Decrypt</button>
         <div class="message" id="message"></div>
-      </div>
+        <div id="hearts">
+          <div class="heart"></div>
+          <div class="heart"></div>
+          <div class="heart"></div>
+          <div class="heart"></div>
+          <div class="heart"></div>
+        </div>
+    </div>
 
     <script>
       const text = "Will You Be My Valentine?"
@@ -88,8 +170,11 @@
         const userInput = parseInt(document.getElementById('input').value, 10);
         if (userInput === secret_key) {
           const finalText = document.getElementById("encrypted-message");
-          finalText.textContent = text;
-          finalText.style.color = "#ff2151";
+          let newElement = document.createElement('h2');
+          newElement.textContent = text;
+          finalText.parentNode.replaceChild(newElement, finalText);
+          newElement.style.color = "#f0072a";
+          newElement.style.fontFamily = 'Georgia, serif';
         } else {
           document.getElementById("encrypted-message").textContent = randomizeMessage();
         }
