@@ -15,6 +15,9 @@
       background-color: #ffffff;
       margin: 0;
     }
+    h1 {
+      font-family: 'Times New Roman', Times, serif;
+    }
     .container {
       text-align: center;
     }
@@ -43,17 +46,21 @@
       border-color: #0776ec;
     }
     .message {
-      margin-top: 20px;
+      margin-top: 5px;
       font-size: 18px;
       font-weight: bold;
     }
     ul {
       list-style-position: inside;
+      list-style-type: none;
       padding: 0;
-      margin: 0;
+      margin: 10px;
+      margin-bottom: 0px;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: larger;
     }
     li {
-      padding-bottom: 5px;
+      padding-bottom: 15px;
     }
     #hearts {
       width: 5%;
@@ -61,6 +68,7 @@
       height: 25%;
       min-height: 250px;
       z-index: 10;
+      display: none;
     }
     .heart {
       position: absolute;
@@ -136,17 +144,18 @@
     <div class="container">
       <h1>Decrypt the Message</h1>
       <ul>
-        <li>I'm the day our story took flight, halfway through the first month's light.</li>
-        <li>Amid the island's sun, we made memories that shine, a month when summer's warmth was truly divine.</li>
-        <li>Sweetness in every bite, a treat so fine, I'm the day you ate the crumble that brightened up the time.</li>
-        <li>Under the lights, with feinous sound, I'm the day the rhythm had us spinning round.</li>
-        <li>Before the books, before the bell, the number of the street we knew so well.</li>
+        <li>I'm the day our story took flight, halfway through the first month's light,</li>
+        <li>Amid the island's sun, we made memories that shine, a month when summer's warmth was truly divine,</li>
+        <li>Sweetness in every bite, a treat so delight, the day you ate the crumble that made everything feel just right,</li>
+        <li>Under the lights, with feinous sound, I'm the day the rhythm had us spinning round,</li>
+        <li>Before the books, before the bell, the number of the street we knew so well,</li>
+        <li>The combination of your answers holds a secret so fine, so now tell me...</li>
       </ul>
       <div class="message" id="encrypted-message">Xjmm!zpv!cf!nz!wbmfoujof@</div>
         <div class="input-field">
           <input type="text" id="input" placeholder="">
         </div>
-        <button onclick="check()">Decrypt</button>
+        <button id="butt" onclick="check()">Decrypt</button>
         <div class="message" id="message"></div>
         <div id="hearts">
           <div class="heart"></div>
@@ -164,7 +173,7 @@
       I made this for my girlfriend for valentines day,
       I did not care about proper coding etiquette lol
       */
-      const secret_key = 1561993040;
+      const secret_key = 1561999343;
 
       function check() {
         const userInput = parseInt(document.getElementById('input').value, 10);
@@ -175,6 +184,12 @@
           finalText.parentNode.replaceChild(newElement, finalText);
           newElement.style.color = "#f0072a";
           newElement.style.fontFamily = 'Georgia, serif';
+          newElement.style.marginTop = "0px";
+          newElement.style.fontSize = "40px";
+          document.getElementById("hearts").style.display = "unset";
+          document.body.style.background = `linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4)`;
+          document.getElementById("butt").style.display = "none";
+          document.getElementById('input').style.display = "none";
         } else {
           document.getElementById("encrypted-message").textContent = randomizeMessage();
         }
