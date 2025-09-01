@@ -1,210 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Decrypt the Message</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Binary to ASCII Camera App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #ffffff;
-      margin: 0;
-    }
-    h1 {
-      font-family: 'Times New Roman', Times, serif;
-    }
-    .container {
-      text-align: center;
-    }
-    .input-field {
-      margin: 20px 0;
-    }
-    input[type="text"] {
-      width: 300px;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #ffffff;
-      color: #007BFF;
-      border-radius: 10px;
-      cursor: pointer;
-      border-color: #007BFF;
-    }
-    button:hover {
-      color: #ffffff;
-      background-color: #007BFF;
-      border-color: #0776ec;
-    }
-    .message {
-      margin-top: 5px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-    ul {
-      list-style-position: inside;
-      list-style-type: none;
-      padding: 0;
-      margin: 10px;
-      margin-bottom: 0px;
-      font-family: 'Times New Roman', Times, serif;
-      font-size: larger;
-    }
-    li {
-      padding-bottom: 15px;
-    }
-    #hearts {
-      width: 5%;
-      min-width: 100px;
-      height: 25%;
-      min-height: 250px;
-      z-index: 10;
-      display: none;
-    }
-    .heart {
-      position: absolute;
-      height: 7%;
-      min-height: 15px;
-      width: 20%;
-      min-width: 15px;
-      background-color: red;
-      -webkit-mask-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path></svg>');
-              mask-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"></path></svg>');
-      -webkit-mask-repeat: no-repeat;
-              mask-repeat: no-repeat;
-      -webkit-mask-position: bottom;
-              mask-position: bottom;
-        opacity: 0;
-        animation: floating-heart 10s infinite cubic-bezier(0.5, 0.5, 0.5, 0.5);
-    }
-
-    @keyframes floating-heart {
-      0% {
-        opacity: 0;
-        bottom: 0%;
-        left: 35%;
-      }
-      10% {
-        opacity: 1;
-        bottom: 20%;
-        left: 50%;
-      }
-      20% {
-        bottom: 40%;
-        left: 30%;
-      }
-      30% {
-        bottom: 60%;
-        left: 50%;
-      }
-      40% {
-        opacity: 1;
-        bottom: 80%;
-        left: 27%;
-      }
-      48% {
-        opacity: 0;
-        bottom: 100%;
-        left: 50%;
-      }
-      100% {
-        opacity: 0;
-        bottom: 100%;
-        left: 70%;
-      }
-    }
-
-    .heart:nth-child(1) {  
-      animation-delay: 1s;
-    }
-
-    .heart:nth-child(2) {
-      animation-delay: 2.5s;
-    }
-
-    .heart:nth-child(3) {
-      animation-delay: 3.5s;
-    }
-
-    .heart:nth-child(4) {
-      animation-delay: 4.5s;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 1em; }
+    video { width: 90%; max-width: 500px; margin: 1em 0; border: 1px solid #ccc; border-radius: 8px; }
+    pre { background: #f5f5f5; padding: 0.5em; border-radius: 5px; text-align: left; white-space: pre-wrap; }
+    .status { margin: 0.5em; font-size: 0.9em; color: gray; }
   </style>
 </head>
 <body>
-    <div class="container">
-      <h1>Decrypt the Message</h1>
-      <ul>
-        <li>I'm the day our story took flight, halfway through the first month's light,</li>
-        <li>Amid the island's sun, we made memories that shine, a month when summer's warmth was truly divine,</li>
-        <li>Sweetness in every bite, a treat so delight, the day you ate the crumble that made everything feel just right,</li>
-        <li>Under the lights, with feinous sound, I'm the day the rhythm had us spinning round,</li>
-        <li>Before the books, before the bell, the number of the street we knew so well,</li>
-        <li>The combination of your answers holds a secret so fine, so now tell me...</li>
-      </ul>
-      <div class="message" id="encrypted-message">Xjmm!zpv!cf!nz!wbmfoujof@</div>
-        <div class="input-field">
-          <input type="text" id="input" placeholder="">
-        </div>
-        <button id="butt" onclick="check()">Decrypt</button>
-        <div class="message" id="message"></div>
-        <div id="hearts">
-          <div class="heart"></div>
-          <div class="heart"></div>
-          <div class="heart"></div>
-          <div class="heart"></div>
-          <div class="heart"></div>
-        </div>
-    </div>
+  <h1>📷 Binary → ASCII (Auto Scan)</h1>
+  <p>Point your camera at binary (0s and 1s). OCR runs every 2s.</p>
 
-    <script>
-      const text = "Will You Be My Valentine?"
-      /*
-      Hello person accessing my website and looking at my code,
-      I made this for my girlfriend for valentines day,
-      I did not care about proper coding etiquette lol
-      */
-      const secret_key = 1561999343;
+  <!-- Camera Preview -->
+  <video id="video" autoplay playsinline></video>
+  <p class="status" id="status">⏳ Initializing...</p>
 
-      function check() {
-        const userInput = parseInt(document.getElementById('input').value, 10);
-        if (userInput === secret_key) {
-          const finalText = document.getElementById("encrypted-message");
-          let newElement = document.createElement('h2');
-          newElement.textContent = text;
-          finalText.parentNode.replaceChild(newElement, finalText);
-          newElement.style.color = "#f0072a";
-          newElement.style.fontFamily = 'Georgia, serif';
-          newElement.style.marginTop = "0px";
-          newElement.style.fontSize = "40px";
-          document.getElementById("hearts").style.display = "unset";
-          document.body.style.background = `linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4)`;
-          document.getElementById("butt").style.display = "none";
-          document.getElementById('input').style.display = "none";
-        } else {
-          document.getElementById("encrypted-message").textContent = randomizeMessage();
-        }
-      }
+  <!-- Hidden canvas for OCR -->
+  <canvas id="canvas" style="display:none;"></canvas>
 
-      function randomizeMessage() {
-        let result = '';
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?/.-~[]{};$%&*#()_=+|';
-        for (let i = 0; i < text.length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        return result;
-      }
+  <!-- Output -->
+  <h3>Binary Detected:</h3>
+  <pre id="binary"></pre>
+  <h3>ASCII Output:</h3>
+  <pre id="ascii"></pre>
 
-      document.getElementById("encrypted-message").textContent = randomizeMessage();
-    </script>
-  </body>
+  <!-- Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const binaryOutput = document.getElementById("binary");
+    const asciiOutput = document.getElementById("ascii");
+    const statusText = document.getElementById("status");
+
+    let scanning = false;
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => { 
+        video.srcObject = stream; 
+        statusText.textContent = "✅ Camera started. Scanning..."; 
+        startAutoScan();
+      })
+      .catch(err => {
+        statusText.textContent = "❌ Camera error: " + err;
+      });
+
+    function startAutoScan() {
+      setInterval(() => {
+        if (scanning) return; // prevent overlap
+        scanning = true;
+        statusText.textContent = "🔍 Scanning...";
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+
+        Tesseract.recognize(canvas, 'eng')
+          .then(result => {
+            let rawText = result.data.text;
+            let binaryText = rawText.replace(/[^01\s]/g, "").trim();
+            binaryOutput.textContent = binaryText || "(none detected)";
+
+            if (binaryText) {
+              try {
+                let ascii = binaryText
+                  .split(/\s+/)
+                  .map(bin => String.fromCharCode(parseInt(bin, 2)))
+                  .join("");
+                asciiOutput.textContent = ascii;
+              } catch {
+                asciiOutput.textContent = "(error decoding)";
+              }
+            } else {
+              asciiOutput.textContent = "(no valid binary)";
+            }
+          })
+          .finally(() => {
+            scanning = false;
+            statusText.textContent = "✅ Idle (next scan in 2s)";
+          });
+      }, 2000); // every 2 seconds
+    }
+  </script>
+</body>
 </html>
