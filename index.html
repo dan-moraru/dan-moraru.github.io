@@ -3,89 +3,181 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Binary to ASCII Camera App</title>
+  <title>Binary → ASCII (Auto Scan)</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 1em; }
-    video { width: 90%; max-width: 500px; margin: 1em 0; border: 1px solid #ccc; border-radius: 8px; }
-    pre { background: #f5f5f5; padding: 0.5em; border-radius: 5px; text-align: left; white-space: pre-wrap; }
-    .status { margin: 0.5em; font-size: 0.9em; color: gray; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif; text-align: center; padding: 1rem; }
+    video { width: 92%; max-width: 560px; margin: 0.75rem 0; border: 1px solid #ddd; border-radius: 10px; }
+    pre { background: #f6f7f8; padding: 0.6rem; border-radius: 8px; text-align: left; white-space: pre-wrap; word-wrap: break-word; }
+    .row { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+    button { padding: 0.5rem 0.9rem; border: 1px solid #ccc; border-radius: 8px; background: #fff; cursor: pointer; }
+    button:active { transform: translateY(1px); }
+    .status { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; color: #666; }
+    .meta { font-size: 0.9rem; color: #555; }
+    .small { font-size: 0.85rem; color: #777; }
   </style>
 </head>
 <body>
   <h1>📷 Binary → ASCII (Auto Scan)</h1>
-  <p>Point your camera at binary (0s and 1s). OCR runs every 2s.</p>
+  <p class="small">Point your camera at clearly printed 0/1 text. The app scans every 2 seconds.</p>
 
   <!-- Camera Preview -->
   <video id="video" autoplay playsinline></video>
-  <p class="status" id="status">⏳ Initializing...</p>
+  <div class="row">
+    <button id="toggle">⏸️ Pause</button>
+    <button id="snap">📸 Scan Now</button>
+  </div>
+  <p class="status" id="status">⏳ Initializing camera…</p>
 
   <!-- Hidden canvas for OCR -->
   <canvas id="canvas" style="display:none;"></canvas>
 
   <!-- Output -->
-  <h3>Binary Detected:</h3>
-  <pre id="binary"></pre>
-  <h3>ASCII Output:</h3>
-  <pre id="ascii"></pre>
+  <h3>Binary Detected</h3>
+  <pre id="binary">(waiting…)</pre>
+  <h3>ASCII Output</h3>
+  <pre id="ascii">(waiting…)</pre>
+  <p class="meta" id="meta"></p>
 
   <!-- Tesseract.js -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const binaryOutput = document.getElementById("binary");
-    const asciiOutput = document.getElementById("ascii");
-    const statusText = document.getElementById("status");
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const binaryEl = document.getElementById('binary');
+    const asciiEl = document.getElementById('ascii');
+    const statusEl = document.getElementById('status');
+    const metaEl = document.getElementById('meta');
+    const toggleBtn = document.getElementById('toggle');
+    const snapBtn = document.getElementById('snap');
 
     let scanning = false;
+    let paused = false;
+    let timerId = null;
 
-    // Start camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => { 
-        video.srcObject = stream; 
-        statusText.textContent = "✅ Camera started. Scanning..."; 
+    // Camera start
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        video.srcObject = stream;
+        statusEl.textContent = '✅ Camera started. Scanning…';
         startAutoScan();
       })
       .catch(err => {
-        statusText.textContent = "❌ Camera error: " + err;
+        statusEl.textContent = '❌ Camera error: ' + err;
       });
 
     function startAutoScan() {
-      setInterval(() => {
-        if (scanning) return; // prevent overlap
-        scanning = true;
-        statusText.textContent = "🔍 Scanning...";
+      timerId = setInterval(() => {
+        if (!paused) runScan();
+      }, 2000);
+    }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
+    toggleBtn.addEventListener('click', () => {
+      paused = !paused;
+      toggleBtn.textContent = paused ? '▶️ Resume' : '⏸️ Pause';
+      statusEl.textContent = paused ? '⏸️ Paused' : '✅ Scanning…';
+    });
 
-        Tesseract.recognize(canvas, 'eng')
-          .then(result => {
-            let rawText = result.data.text;
-            let binaryText = rawText.replace(/[^01\s]/g, "").trim();
-            binaryOutput.textContent = binaryText || "(none detected)";
+    snapBtn.addEventListener('click', () => runScan());
 
-            if (binaryText) {
-              try {
-                let ascii = binaryText
-                  .split(/\s+/)
-                  .map(bin => String.fromCharCode(parseInt(bin, 2)))
-                  .join("");
-                asciiOutput.textContent = ascii;
-              } catch {
-                asciiOutput.textContent = "(error decoding)";
-              }
-            } else {
-              asciiOutput.textContent = "(no valid binary)";
-            }
-          })
-          .finally(() => {
-            scanning = false;
-            statusText.textContent = "✅ Idle (next scan in 2s)";
-          });
-      }, 2000); // every 2 seconds
+    async function runScan() {
+      if (scanning) return;
+      if (!video.videoWidth) return;
+      scanning = true;
+      statusEl.textContent = '🔍 Scanning…';
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+
+      try {
+        const result = await Tesseract.recognize(canvas, 'eng');
+        const raw = result.data.text || '';
+        const binaryOnly = raw.replace(/[^01\s]/g, '').trim();
+
+        binaryEl.textContent = binaryOnly || '(none detected)';
+
+        // Smart decode that avoids non-printable squares
+        const decoded = smartBinaryDecode(binaryOnly);
+        asciiEl.textContent = decoded.text || '(no valid output)';
+        metaEl.textContent = decoded.meta;
+      } catch (e) {
+        asciiEl.textContent = '(OCR error)';
+        metaEl.textContent = String(e);
+      } finally {
+        scanning = false;
+        if (!paused) statusEl.textContent = '✅ Idle (next scan in 2s)';
+      }
+    }
+
+    function smartBinaryDecode(input) {
+      // If input is empty, bail early
+      if (!input || !input.replace(/\s/g, '').length) {
+        return { text: '', meta: 'No bits detected.' };
+      }
+
+      // Remove everything but 0/1 and whitespace, then try 8-bit and 7-bit strategies.
+      const cleaned = input.replace(/[^01\s]/g, '');
+      const hasWhitespace = /\s/.test(cleaned);
+
+      const d8 = hasWhitespace ? decodeFromTokens(cleaned, 8) : decodeFromContinuous(cleaned, 8);
+      const d7 = hasWhitespace ? decodeFromTokens(cleaned, 7) : decodeFromContinuous(cleaned, 7);
+
+      // Choose the result with the higher printable ratio.
+      const best = (d8.printableRatio >= d7.printableRatio) ? { ...d8, bits: 8 } : { ...d7, bits: 7 };
+
+      const pct = Math.round(best.printableRatio * 100);
+      const meta = `Decoded using ${best.bits}-bit groups · ${pct}% printable (${best.printable}/${best.total} chars)`;
+
+      return { text: best.text, meta };
+    }
+
+    function decodeFromTokens(str, bits) {
+      const tokens = str.trim().split(/\s+/).filter(Boolean);
+      let bytes = [];
+      for (const t of tokens) {
+        if (t.length === bits) {
+          bytes.push(t);
+        } else if (t.length > bits && t.length % bits === 0) {
+          bytes = bytes.concat(chunk(t, bits));
+        }
+      }
+      return bytesToAscii(bytes);
+    }
+
+    function decodeFromContinuous(str, bits) {
+      const continuous = str.replace(/\s+/g, '');
+      const bytes = chunk(continuous, bits).filter(b => b.length === bits);
+      return bytesToAscii(bytes);
+    }
+
+    function chunk(s, size) {
+      const out = [];
+      for (let i = 0; i < s.length; i += size) out.push(s.slice(i, i + size));
+      return out;
+    }
+
+    function bytesToAscii(bytes) {
+      let chars = [];
+      let printable = 0;
+      for (const b of bytes) {
+        const code = parseInt(b, 2);
+        if (Number.isNaN(code)) continue;
+        if (code >= 32 && code <= 126) { // printable ASCII
+          chars.push(String.fromCharCode(code));
+          printable++;
+        } else if (code === 10 || code === 13 || code === 9) {
+          chars.push(' '); // normalize control chars to space
+        } else {
+          chars.push('□'); // visible placeholder for non-printable; avoids blank squares
+        }
+      }
+      return {
+        text: chars.join(''),
+        printable,
+        total: bytes.length,
+        printableRatio: bytes.length ? printable / bytes.length : 0
+      };
     }
   </script>
 </body>
