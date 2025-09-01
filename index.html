@@ -3,64 +3,91 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Binary → ASCII Demo App</title>
+  <title>Binary to ASCII Camera App</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif; text-align: center; background: #f9fafb; margin: 0; padding: 0; }
-    header { background: #0d6efd; color: #fff; padding: 1rem; font-size: 1.4rem; font-weight: 600; }
-    main { padding: 1.5rem; }
-    video { width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    button { padding: 0.8rem 1.5rem; font-size: 1rem; border: none; border-radius: 10px; background: #0d6efd; color: #fff; cursor: pointer; transition: background 0.2s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-    button:hover { background: #0b5ed7; }
-    .card { background: #fff; border-radius: 12px; padding: 1.2rem; margin-top: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.08); text-align: left; }
-    h3 { margin-top: 0; color: #333; }
-    pre { background: #f3f4f6; padding: 0.7rem; border-radius: 8px; font-size: 1rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
-    .loading { font-size: 1rem; color: #666; margin-top: 1rem; }
-    .hidden { display: none; }
+    body { font-family: sans-serif; text-align: center; padding: 1em; background-color: #f0f2f5; color: #333; }
+    h1 { color: #007bff; }
+    video, canvas { width: 90%; max-width: 500px; margin: 1em 0; border: 2px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    pre { background: #fff; padding: 1em; border-radius: 5px; text-align: left; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #e0e0e0; min-height: 1.5em; }
+    button { padding: 12px 24px; border: none; border-radius: 6px; background: #007bff; color: white; font-size: 1.1em; cursor: pointer; transition: background-color 0.3s; }
+    button:hover { background: #0056b3; }
+    h3 { margin-top: 1.5em; }
   </style>
 </head>
 <body>
-  <header>📷 Binary → ASCII Translator</header>
-  <main>
-    <!-- Fake camera preview (just placeholder background) -->
-    <video id="video" autoplay playsinline muted poster="https://via.placeholder.com/500x300.png?text=Camera+Preview"></video>
+  <h1>📷 Binary → ASCII Translator</h1>
+  <p>Point your camera at some binary text (0s and 1s), capture it, and see the translation.</p>
 
-    <!-- Capture button -->
-    <button id="captureBtn">Capture & Translate</button>
+  <video id="video" autoplay playsinline></video><br>
+  <button id="snap">📸 Capture & Translate</button>
 
-    <!-- Status / loading message -->
-    <p id="loading" class="loading hidden">⏳ Analyzing binary...</p>
+  <canvas id="canvas" style="display:none;"></canvas>
 
-    <!-- Output card -->
-    <div id="outputCard" class="card hidden">
-      <h3>Translation Result</h3>
-      <pre id="asciiResult"></pre>
-    </div>
-  </main>
+  <h3>Binary Detected:</h3>
+  <pre id="binary">(Waiting for capture)</pre>
+  <h3>ASCII Output:</h3>
+  <pre id="ascii">(Waiting for translation)</pre>
 
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
-    const captureBtn = document.getElementById('captureBtn');
-    const loading = document.getElementById('loading');
-    const outputCard = document.getElementById('outputCard');
-    const asciiResult = document.getElementById('asciiResult');
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const snapButton = document.getElementById("snap");
+    const ctx = canvas.getContext("2d");
+    const binaryOutput = document.getElementById("binary");
+    const asciiOutput = document.getElementById("ascii");
 
-    // Hardcoded fake output string
-    const HARDCODED_ASCII = "I love latinas";
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => {
+        console.error("Camera access error:", err);
+        alert("Could not access the camera. Please ensure you've given permission.");
+      });
 
-    captureBtn.addEventListener('click', () => {
-      // Hide previous output
-      outputCard.classList.add('hidden');
-      asciiResult.textContent = '';
+    // Capture button click handler
+    snapButton.onclick = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Show fake loading
-      loading.classList.remove('hidden');
+      binaryOutput.textContent = "Processing image...";
+      asciiOutput.textContent = "";
 
-      // After 1.5s, show result
-      setTimeout(() => {
-        loading.classList.add('hidden');
-        asciiResult.textContent = HARDCODED_ASCII;
-        outputCard.classList.remove('hidden');
-      }, 1500);
-    });
+      // Run OCR on the captured frame
+      Tesseract.recognize(canvas, 'eng').then(result => {
+        let rawText = result.data.text;
+        
+        // 1. Sanitize the input to be ONLY 0s and 1s, removing all spaces and other chars.
+        let cleanBinary = rawText.replace(/[^01]/g, "");
+
+        // 2. Ensure we only process full 8-bit chunks (bytes).
+        const byteSize = 8;
+        let divisibleLength = Math.floor(cleanBinary.length / byteSize) * byteSize;
+        let binaryText = cleanBinary.substring(0, divisibleLength);
+        
+        // For display, add a space every 8 characters to make it readable.
+        let formattedBinary = binaryText.replace(/(.{8})/g, '$1 ').trim();
+        binaryOutput.textContent = formattedBinary || "(No valid binary detected)";
+
+        // 3. Convert binary → ASCII
+        if (binaryText) {
+          try {
+            // Split the clean string into an array of 8-bit chunks.
+            let ascii = binaryText
+              .match(/.{1,8}/g) // This is the key change!
+              .map(bin => String.fromCharCode(parseInt(bin, 2)))
+              .join("");
+            asciiOutput.textContent = ascii;
+          } catch (e) {
+            asciiOutput.textContent = "(Error during decoding)";
+            console.error(e);
+          }
+        } else {
+          asciiOutput.textContent = "(No text to translate)";
+        }
+      });
+    };
   </script>
 </body>
 </html>
