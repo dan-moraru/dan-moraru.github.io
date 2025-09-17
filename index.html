@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Binary Vision Demo</title>
+    <title>Binary Vision Translator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -16,7 +16,6 @@
             --light-text-color: #888;
             --border-color: #e0e0e0;
         }
-
         body {
             font-family: 'Poppins', sans-serif;
             text-align: center;
@@ -27,25 +26,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
         }
-
         .container {
             width: 100%;
             max-width: 500px;
         }
-
         h1 {
             color: var(--primary-color);
             font-weight: 600;
         }
-
         p {
             color: var(--light-text-color);
             margin-bottom: 2em;
         }
-
+        .video-container {
+            position: relative;
+            width: 100%;
+        }
         video {
             width: 100%;
             border: 2px solid var(--border-color);
@@ -53,7 +51,6 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             background-color: #000;
         }
-
         button {
             padding: 15px 30px;
             margin-top: 1.5em;
@@ -63,24 +60,20 @@
             color: white;
             font-size: 1.1em;
             font-weight: 600;
-            font-family: 'Poppins', sans-serif;
             cursor: pointer;
             transition: transform 0.2s ease, background-color 0.2s ease;
             box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
         }
-
         button:hover {
             transform: translateY(-2px);
             background: #0056b3;
         }
-        
         button:disabled {
             background-color: #999;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-
         .output-card {
             background: var(--card-background);
             padding: 1em 1.5em;
@@ -90,24 +83,20 @@
             margin-top: 2em;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
         }
-        
         .output-card h3 {
             margin: 0 0 0.5em 0;
             font-size: 1em;
             font-weight: 600;
         }
-
         pre {
             background: #f7f7f7;
             padding: 0.8em;
             border-radius: 8px;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: var(--text-color);
             font-family: 'Menlo', 'Courier New', monospace;
             min-height: 1.5em;
         }
-        
         .loader {
             display: none;
             width: 24px;
@@ -118,20 +107,23 @@
             animation: spin 1s linear infinite;
             margin: 0.5em auto;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📷 Binary Vision</h1>
-        <p>Point your camera at any text, capture it, and let our AI do the translation.</p>
+        <p>Point your camera at binary code, capture it, and see the translation.</p>
 
-        <video id="video" autoplay playsinline></video><br>
+        <div class="video-container">
+            <video id="video" autoplay playsinline></video>
+            </div>
+        
+        <canvas id="canvas" style="display: none;"></canvas>
+
         <button id="snap">📸 Analyze Image</button>
 
         <div class="output-card">
@@ -143,17 +135,15 @@
         </div>
     </div>
 
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+
     <script>
         const video = document.getElementById("video");
         const snapButton = document.getElementById("snap");
+        const canvas = document.getElementById("canvas");
         const binaryOutput = document.getElementById("binary");
         const asciiOutput = document.getElementById("ascii");
         const loader = document.getElementById("loader");
-
-        // --- HARDCODED DEMO VALUES ---
-        const fakeBinary = "01101001 01100110 01100101 01100101 01110100";
-        const fakeAscii = "I <3 Feet";
-        const processingTime = 1500; // 1.5 seconds
 
         // Start camera
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -162,11 +152,35 @@
             })
             .catch(err => {
                 console.error("Camera access error:", err);
-                alert("Could not access the camera. Please ensure you've given permission.");
+                alert("Could not access the camera. Please grant permission.");
             });
 
+        // Function to translate binary string to ASCII text
+        function binaryToAscii(binaryString) {
+            // 1. Remove anything that isn't a 0 or 1
+            const cleanBinary = binaryString.replace(/[^01]/g, "");
+            
+            // 2. Ensure we have full 8-bit chunks (bytes)
+            const byteSize = 8;
+            const divisibleLength = Math.floor(cleanBinary.length / byteSize) * byteSize;
+            if (divisibleLength === 0) return { ascii: "", formattedBinary: "" };
+            
+            const processableBinary = cleanBinary.substring(0, divisibleLength);
+
+            // 3. Split into 8-bit chunks, convert each to a character
+            const ascii = processableBinary
+                .match(/.{1,8}/g)
+                .map(bin => String.fromCharCode(parseInt(bin, 2)))
+                .join("");
+            
+            // 4. Add spaces to the binary for better readability
+            const formattedBinary = processableBinary.replace(/(.{8})/g, '$1 ').trim();
+
+            return { ascii, formattedBinary };
+        }
+
         // Capture button click handler
-        snapButton.onclick = () => {
+        snapButton.onclick = async () => {
             // 1. Show processing state
             snapButton.disabled = true;
             snapButton.textContent = "Analyzing...";
@@ -174,18 +188,29 @@
             binaryOutput.textContent = "";
             asciiOutput.textContent = "";
             
-            // 2. Simulate a delay for a realistic "processing" feel
-            setTimeout(() => {
-                // 3. Display the hardcoded results
-                binaryOutput.textContent = fakeBinary;
-                asciiOutput.textContent = fakeAscii;
+            // 2. Capture frame from video to canvas
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                // 4. Reset the button and hide loader
+            // 3. Use Tesseract to recognize text
+            try {
+                const result = await Tesseract.recognize(canvas, 'eng');
+                const { ascii, formattedBinary } = binaryToAscii(result.data.text);
+                
+                binaryOutput.textContent = formattedBinary || "(No valid binary detected)";
+                asciiOutput.textContent = ascii || "(Could not translate)";
+
+            } catch (error) {
+                console.error("OCR Error:", error);
+                asciiOutput.textContent = "Error during analysis.";
+            } finally {
+                // 4. Reset the UI
                 snapButton.disabled = false;
                 snapButton.textContent = "📸 Analyze Image";
                 loader.style.display = 'none';
-
-            }, processingTime);
+            }
         };
     </script>
 </body>
