@@ -121,7 +121,7 @@
         }
         .translated-box {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.4);
             color: white;
             padding: 2px 5px;
             border-radius: 4px;
@@ -248,8 +248,9 @@
                         box.style.top = `${(bbox.y0 / canvas.height) * 100}%`;
                         box.style.width = `${((bbox.x1 - bbox.x0) / canvas.width) * 100}%`;
                         box.style.height = `${((bbox.y1 - bbox.y0) / canvas.height) * 100}%`;
-                        // A little font size adjustment for fit
-                        box.style.fontSize = `${(((bbox.y1 - bbox.y0) / canvas.height) * 100) * 0.8}px`;
+
+                        // text size
+                        box.style.fontSize = `${(((bbox.y1 - bbox.y0) / canvas.height) * 100) * 1.2}px`;
         
         
                         overlay.appendChild(box);
